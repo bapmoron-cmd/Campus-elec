@@ -1,0 +1,20 @@
+[
+  {
+    "title": "Les protections électriques",
+    "track": "BTS Électrotechnique",
+    "type": "lesson",
+    "summary": "Comprendre la fonction du disjoncteur.",
+    "body": "Un disjoncteur protège le circuit contre les surintensités.",
+    "questions": [
+      {
+        "q": "Que détecte le disjoncteur ?",
+        "options": [
+          "Une surintensité",
+          "Une baisse de luminosité"
+        ],
+        "answer": 0,
+        "explanation": "Il protège contre les surcharges et courts-circuits."
+      }
+    ]
+  }
+]

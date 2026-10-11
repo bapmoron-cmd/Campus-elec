@@ -1,0 +1,39 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function isAdmin() { return signedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid)); }
+    function validProgress() {
+      return request.resource.data.keys().hasOnly(['best', 'last', 'updatedAt'])
+        && request.resource.data.best is int && request.resource.data.best >= 0 && request.resource.data.best <= 100
+        && request.resource.data.last is int && request.resource.data.last >= 0 && request.resource.data.last <= 100;
+    }
+    match /admins/{uid} {
+      allow get: if signedIn() && (request.auth.uid == uid || isAdmin());
+      allow list, create, update, delete: if false;
+    }
+    match /users/{uid} {
+      allow create: if signedIn() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['name','email','track','createdAt'])
+        && request.resource.data.email == request.auth.token.email
+        && request.resource.data.name is string
+        && request.resource.data.track in ['BTS Électrotechnique','BTS ATI','Bac Pro MELEC','CAP Électricien'];
+      allow get: if signedIn() && (request.auth.uid == uid || isAdmin());
+      allow list: if isAdmin();
+      allow update: if signedIn() && request.auth.uid == uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name','track'])
+        && request.resource.data.name is string
+        && request.resource.data.track in ['BTS Électrotechnique','BTS ATI','Bac Pro MELEC','CAP Électricien'];
+      allow delete: if false;
+      match /progress/{lessonId} {
+        allow get, list: if signedIn() && (request.auth.uid == uid || isAdmin());
+        allow create, update: if signedIn() && request.auth.uid == uid && validProgress();
+        allow delete: if false;
+      }
+    }
+    match /lessons/{id} {
+      allow get, list: if signedIn();
+      allow create, update, delete: if isAdmin();
+    }
+  }
+}
